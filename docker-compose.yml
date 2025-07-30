@@ -1,0 +1,94 @@
+services:
+    db:
+        image: mysql:8.0
+        container_name: db_bookingapi
+        restart: unless-stopped
+        environment:
+            MYSQL_DATABASE: bookingapi
+            MYSQL_USER: laravel
+            MYSQL_PASSWORD: secret
+            MYSQL_ROOT_PASSWORD: root_secret
+        volumes:
+            - db_data:/var/lib/mysql
+            - ./mysql/my.cnf:/etc/mysql/conf.d/my.cnf
+        ports:
+            - "3306:3306"
+        networks:
+            - laravel-network
+
+    phpmyadmin:
+        image: phpmyadmin/phpmyadmin
+        container_name: phpmyadmin_bookingapi
+        restart: unless-stopped
+        depends_on:
+            - db
+        environment:
+            PMA_HOST: db
+            PMA_PORT: 3306
+            PMA_ARBITRARY: 0
+            PMA_USER: root
+            PMA_PASSWORD: root_secret
+        ports:
+            - "8080:80"
+        networks:
+            - laravel-network
+
+    app:
+        build:
+            context: .
+            dockerfile: Dockerfile
+        container_name: app_bookingapi
+        restart: unless-stopped
+        working_dir: /var/www
+        volumes:
+            - ./:/var/www
+        environment:
+            - APP_ENV=local
+            - APP_DEBUG=true
+            - DB_HOST=db
+            - DB_DATABASE=bookingapi
+            - DB_USERNAME=laravel
+            - DB_PASSWORD=secret
+            - REDIS_HOST=redis
+            - REDIS_PASSWORD=secret
+            - REDIS_PORT=6379
+        networks:
+            - laravel-network
+        depends_on:
+            - db
+
+    web:
+        image: nginx:alpine
+        container_name: web_bookingapi
+        restart: unless-stopped
+        ports:
+            - "80:80"
+        volumes:
+            - ./:/var/www
+            - ./nginx/conf.d/:/etc/nginx/conf.d/
+        networks:
+            - laravel-network
+        depends_on:
+            - app
+
+    redis:
+        image: redis:7-alpine
+        container_name: redis_bookingapi
+        restart: unless-stopped
+        ports:
+            - "6379:6379"
+        volumes:
+            - redis_data:/data
+        networks:
+            - laravel-network
+        command: redis-server --appendonly yes --requirepass secret
+
+volumes:
+    db_data:
+        driver: local
+    redis_data:
+        driver: local
+
+networks:
+    laravel-network:
+        driver: bridge
