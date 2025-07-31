@@ -22,4 +22,12 @@ class BaseController extends Controller
             'message' => $message,
         ], $code);
     }
+
+    protected function defaultResponse(string $message, int $code = 200): JsonResponse
+    {
+        return response()->json([
+            'success' => true,
+            'message' => $message,
+        ], $code);
+    }
 }

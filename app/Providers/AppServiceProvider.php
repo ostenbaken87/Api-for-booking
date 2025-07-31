@@ -2,9 +2,12 @@
 
 namespace App\Providers;
 
+use Laravel\Sanctum\Sanctum;
+use App\Services\ResourceService;
 use Illuminate\Support\ServiceProvider;
 use Laravel\Sanctum\PersonalAccessToken;
-use Laravel\Sanctum\Sanctum;
+use App\Repositories\Resource\ResourceRepository;
+use App\Repositories\Resource\ResourceRepositoryInterface;
 
 class AppServiceProvider extends ServiceProvider
 {
@@ -13,7 +16,18 @@ class AppServiceProvider extends ServiceProvider
      */
     public function register(): void
     {
-        //
+        // Repositories
+        $this->app->bind(
+            ResourceRepositoryInterface::class,
+            ResourceRepository::class
+        );
+
+        // Services
+        $this->app->bind(ResourceService::class, function ($app) {
+            return new ResourceService(
+                $app->make(ResourceRepositoryInterface::class)
+            );
+        });
     }
 
     /**

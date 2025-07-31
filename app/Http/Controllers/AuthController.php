@@ -73,10 +73,8 @@ class AuthController extends BaseController
 
         $user->tokens()->delete();
 
-        return $this->successResponse(
-            data: null,
-            message: 'User logged out successfully',
-            code: 200
+        return $this->defaultResponse(
+            'Logged out successfully'
         );
     }
 }

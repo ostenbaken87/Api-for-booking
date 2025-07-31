@@ -14,7 +14,7 @@ return new class extends Migration
         Schema::create('resources', function (Blueprint $table) {
             $table->id();
             $table->string('name');
-            $table->string('type');
+            $table->enum('type', ['room', 'equipment', 'car', 'house']);
             $table->text('description')->nullable();
             $table->timestamps();
         });
